@@ -1,10 +1,9 @@
-import 'package:animations/animations.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:room_for_rent/pages/favorite.dart';
 import 'package:room_for_rent/pages/notification_page.dart';
 import 'package:room_for_rent/pages/profile.dart';
-import 'package:room_for_rent/pages/rooms_admin.dart';
+
 import 'package:room_for_rent/utils/search_deligate.dart';
 import 'package:room_for_rent/widgets/homepage/room_card.dart';
 import 'package:room_for_rent/widgets/homepage/second_pwage.dart';
