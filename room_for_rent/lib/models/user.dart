@@ -10,13 +10,14 @@ class User {
   final String name;
   final String dob;
 
-  User(
-      {@required this.id,
-      @required this.email,
-      @required this.token,
-      this.gender,
-      this.dob,
-      this.phone,
-      this.name,
-      this.info});
+  User({
+    @required this.id,
+    @required this.email,
+    @required this.token,
+    this.gender,
+    this.dob,
+    this.phone,
+    this.name,
+    this.info,
+  });
 }

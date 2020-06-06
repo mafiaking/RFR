@@ -40,15 +40,21 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void initState() {
-    _model.initialCheck();
     _model.autoAuthenticate();
     _model.userSubject.listen((bool isAuthenticated) {
       setState(() {
         _isAuthenticated = isAuthenticated;
       });
       if (_isAuthenticated == true) {
-        _model.countInitialRoomLength();
-        _model.checkForUpdatedList();
+        _model.getCurrentLocation(
+            "init"); //to turn gps on and get current location
+        _model.userNotifictionCheck(); //to trigger notification if came
+        _model
+            .initialNotificationCheck(); //search changes in admin notification
+        _model
+            .countInitialRoomLength(); // count current room list length from database on each login
+        _model
+            .checkForUpdatedList(); // compare current list length with one counted in begining to show notification
       }
     });
     super.initState();

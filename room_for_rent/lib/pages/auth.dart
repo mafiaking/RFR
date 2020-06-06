@@ -282,67 +282,69 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
     return Scaffold(
       body: SingleChildScrollView(
         child: Container(
-          child: Column(children: <Widget>[
-            _buildTopDesign(),
-            Container(
-              height: MediaQuery.of(context).size.height / 0.75,
-              width: targetWidth,
-              padding: EdgeInsets.only(top: 50),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: <Widget>[
-                    _buildEmailTextField(),
-                    _buildPasswordTextField(),
-                    _authMode == AuthMode.Login
-                        ? Container()
-                        : _buildPasswordConfirmTextField(),
-                    SizedBox(height: 10.0),
-                    _buildAcceptSwitch(),
-                    FlatButton(
-                      child: Text(
-                          'Switch to ${_authMode == AuthMode.Login ? 'Signup' : 'Login'}'),
-                      onPressed: () {
-                        if (_authMode == AuthMode.Login) {
-                          setState(() {
-                            _authMode = AuthMode.Signup;
-                          });
-                          _controller.forward();
-                        } else {
-                          setState(() {
-                            _authMode = AuthMode.Login;
-                          });
-                          _controller.reverse();
-                        }
-                      },
-                    ),
-                    ScopedModelDescendant<MainModel>(
-                      builder: (BuildContext context, Widget child,
-                          MainModel model) {
-                        return model.isLoading
-                            ? AdaptiveProgressIndicator()
-                            : RaisedButton(
-                                textColor: Colors.white,
-                                child: Text(
-                                  _authMode == AuthMode.Login
-                                      ? 'LOGIN'
-                                      : 'SIGNUP',
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                onPressed: () =>
-                                    _submitForm(model.authenticate),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(50)),
-                              );
-                      },
-                    ),
-                  ],
+          child: Column(
+            children: <Widget>[
+              _buildTopDesign(),
+              Container(
+                height: MediaQuery.of(context).size.height / 0.75,
+                width: targetWidth,
+                padding: EdgeInsets.only(top: 50),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: <Widget>[
+                      _buildEmailTextField(),
+                      _buildPasswordTextField(),
+                      _authMode == AuthMode.Login
+                          ? Container()
+                          : _buildPasswordConfirmTextField(),
+                      SizedBox(height: 10.0),
+                      _buildAcceptSwitch(),
+                      FlatButton(
+                        child: Text(
+                            'Switch to ${_authMode == AuthMode.Login ? 'Signup' : 'Login'}'),
+                        onPressed: () {
+                          if (_authMode == AuthMode.Login) {
+                            setState(() {
+                              _authMode = AuthMode.Signup;
+                            });
+                            _controller.forward();
+                          } else {
+                            setState(() {
+                              _authMode = AuthMode.Login;
+                            });
+                            _controller.reverse();
+                          }
+                        },
+                      ),
+                      ScopedModelDescendant<MainModel>(
+                        builder: (BuildContext context, Widget child,
+                            MainModel model) {
+                          return model.isLoading
+                              ? AdaptiveProgressIndicator()
+                              : RaisedButton(
+                                  textColor: Colors.white,
+                                  child: Text(
+                                    _authMode == AuthMode.Login
+                                        ? 'LOGIN'
+                                        : 'SIGNUP',
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  onPressed: () =>
+                                      _submitForm(model.authenticate),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(50)),
+                                );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ]),
+            ],
+          ),
         ),
       ),
     );

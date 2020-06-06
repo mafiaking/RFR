@@ -8,10 +8,19 @@ import 'package:flutter_khalti/flutter_khalti.dart';
 import '../models/room.dart';
 import '../pages/payment_status.dart';
 
-class CheckOut extends StatelessWidget {
+class CheckOut extends StatefulWidget {
   final Room _room;
 
   CheckOut(this._room);
+
+  @override
+  _CheckOutState createState() => _CheckOutState();
+}
+
+class _CheckOutState extends State<CheckOut> {
+  DateTime bookingDate;
+
+  DateTime bookingTill;
 
   void _payViaKhalti(double total, context, booked) async {
     final double amount = total * 100;
@@ -35,11 +44,11 @@ class CheckOut extends StatelessWidget {
     FlutterKhalti(
       urlSchemeIOS: "KhaltiPayFlutterExampleScheme",
       publicKey: "test_public_key_4e0a801cc701466aa75759f9bf1447c0",
-      productId: _room.id,
-      productName: _room.title,
+      productId: widget._room.id,
+      productName: widget._room.title,
       amount: amount,
       customData: {
-        "Email": _room.userEmail,
+        "Email": widget._room.userEmail,
       },
     ).initPayment(
       onSuccess: (data) {
@@ -89,8 +98,8 @@ class CheckOut extends StatelessWidget {
   }
 
   Widget _buildPriceBreakdown(context, Function booked) {
-    final double discount = _room.discount;
-    final double subtotal = _room.price;
+    final double discount = widget._room.discount;
+    final double subtotal = widget._room.price;
     final double off = subtotal * discount / 100;
     final double total = subtotal - off;
     // final DateTime date = DateTime.now();
@@ -101,9 +110,7 @@ class CheckOut extends StatelessWidget {
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-                blurRadius: 5.0,
-                color: Colors.grey.shade700,
-                spreadRadius: 80.0),
+                blurRadius: 5.0, color: Colors.transparent, spreadRadius: 80.0),
           ],
           color: Colors.white,
         ),
@@ -153,7 +160,34 @@ class CheckOut extends StatelessWidget {
             RaisedButton(
               color: Theme.of(context).primaryColor,
               onPressed: () {
-                _payViaKhalti(total, context, booked);
+                if (bookingTill != null && bookingDate != null) {
+                  print(bookingTill
+                      .isAfter(bookingDate.add(Duration(days: 31)))
+                      .toString());
+                  if (bookingTill.isAfter(
+                    bookingDate.add(
+                      Duration(days: 31),
+                    ),
+                  )) {
+                    _payViaKhalti(total, context, booked);
+                  } else
+                    showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text("Alert!"),
+                            content: Text(
+                                "Room must be booked for minimum one month period."),
+                            actions: <Widget>[
+                              FlatButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                  child: Text("ok"))
+                            ],
+                          );
+                        });
+                }
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -183,14 +217,14 @@ class CheckOut extends StatelessWidget {
               color: Theme.of(context).primaryColor,
               child: FadeInImage(
                 image: NetworkImage(room.image),
-                height: 230.0,
+                height: 220.0,
                 fit: BoxFit.cover,
                 placeholder: AssetImage('assets/room.png'),
               ),
             )
           : FadeInImage(
               image: NetworkImage(room.image),
-              height: 230.0,
+              height: 220.0,
               fit: BoxFit.cover,
               placeholder: AssetImage('assets/room.png'),
             ),
@@ -205,7 +239,7 @@ class CheckOut extends StatelessWidget {
         decoration: BoxDecoration(),
         child: Column(children: [
           Text(
-            _room.title,
+            widget._room.title,
             style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -225,34 +259,107 @@ class CheckOut extends StatelessWidget {
     );
   }
 
+  Widget _buildDateSelection(BuildContext context) {
+    return Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+      Card(
+        elevation: 3,
+        child: InkWell(
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.4,
+              padding: EdgeInsets.all(5),
+              child: Column(children: [
+                Icon(
+                  Icons.calendar_today,
+                  size: 20,
+                ),
+                Text("Booking Date"),
+                bookingDate != null
+                    ? Text(
+                        "${bookingDate.day.toString()}/${bookingDate.month.toString()}/${bookingDate.year.toString()}")
+                    : Container()
+              ]),
+            ),
+            onTap: () {
+              showDatePicker(
+                helpText: "Select Date of Birth",
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime.now(),
+                lastDate: DateTime(DateTime.now().year + 1),
+              ).then((value) {
+                setState(() {
+                  bookingDate = value;
+                });
+              });
+            }),
+      ),
+      Card(
+        elevation: 3,
+        child: InkWell(
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.4,
+            padding: EdgeInsets.all(5),
+            child: Column(children: [
+              Icon(
+                Icons.today,
+                size: 20,
+              ),
+              Text("Booking Till"),
+              bookingTill != null
+                  ? Text(
+                      "${bookingTill.day.toString()}/${bookingTill.month.toString()}/${bookingTill.year.toString()}")
+                  : Container()
+            ]),
+          ),
+          onTap: () {
+            showDatePicker(
+              helpText: "Select Date of Birth",
+              context: context,
+              initialDate: DateTime.now(),
+              firstDate: DateTime.now(),
+              lastDate: DateTime(DateTime.now().year + 2),
+            ).then((value) {
+              setState(() {
+                bookingTill = value;
+              });
+            });
+          },
+        ),
+      ),
+    ]);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.grey.shade200,
-        appBar: AppBar(
-          title: Text("Check Out"),
-          actions: <Widget>[Icon(Icons.add_shopping_cart)],
-        ),
-        body: _room != null ? ScopedModelDescendant<MainModel>(
-            builder: (BuildContext context, Widget child, MainModel model) {
-          return Column(
-            children: <Widget>[
-              Expanded(
-                child: ListView(
-                  padding: EdgeInsets.all(10.0),
-                  children: <Widget>[
-                    _buildRoomCard(_room, context),
-                    SizedBox(height: 10.0),
-                    _buildRoomInfo(_room),
-                  ],
-                ),
+      backgroundColor: Colors.grey.shade200,
+      appBar: AppBar(
+        title: Text("Check Out"),
+        actions: <Widget>[Icon(Icons.add_shopping_cart)],
+      ),
+      body: ScopedModelDescendant<MainModel>(
+          builder: (BuildContext context, Widget child, MainModel model) {
+        return Column(
+          children: <Widget>[
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.all(10.0),
+                children: <Widget>[
+                  _buildRoomCard(widget._room, context),
+                  SizedBox(height: 10.0),
+                  _buildRoomInfo(widget._room),
+                  SizedBox(height: 10.0),
+                  _buildDateSelection(context)
+                ],
               ),
-              SizedBox(
-                height: 10.0,
-              ),
-              _buildPriceBreakdown(context, model.bookedRoom)
-            ],
-          );
-        }): Text("NO ROOM SELECTED"));
+            ),
+            SizedBox(
+              height: 10.0,
+            ),
+            _buildPriceBreakdown(context, model.bookedRoom)
+          ],
+        );
+      }),
+    );
   }
 }

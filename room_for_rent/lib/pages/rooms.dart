@@ -28,14 +28,14 @@ class _RoomsPageState extends State<RoomsPage> {
 
   Widget _buildSideDrawer(BuildContext context, Function selRoom) {
     return Drawer(
-      child: Column(
+        child: Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: Text('Choose'),
+        elevation: Theme.of(context).platform == TargetPlatform.iOS ? 0.0 : 4.0,
+      ),
+      body: ListView(
         children: <Widget>[
-          AppBar(
-            automaticallyImplyLeading: false,
-            title: Text('Choose'),
-            elevation:
-                Theme.of(context).platform == TargetPlatform.iOS ? 0.0 : 4.0,
-          ),
           ListTile(
             leading: Icon(Icons.home),
             title: Text("Home"),
@@ -80,7 +80,7 @@ class _RoomsPageState extends State<RoomsPage> {
           LogoutListTile()
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildRoomsList() {

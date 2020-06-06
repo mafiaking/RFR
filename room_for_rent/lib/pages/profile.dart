@@ -140,8 +140,10 @@ class _ProfilePageState extends State<ProfilePage> {
                                                 DateTime.now().year + 1))
                                         .then((value) {
                                       setState(() {
-                                        dobController.text =
-                                            '${value.day.toString().length == 1 ? 0 : ''}${value.day}/${value.month.toString().length == 1 ? 0 : ''}${value.month}/${value.year}';
+                                        if (value != null) {
+                                          dobController.text =
+                                              '${value.day.toString().length == 1 ? 0 : ''}${value.day}/${value.month.toString().length == 1 ? 0 : ''}${value.month}/${value.year}';
+                                        }
                                       });
                                     });
                                   })
@@ -345,6 +347,14 @@ class _ProfilePageState extends State<ProfilePage> {
                               onPressed: () {
                                 Navigator.pop(context);
                                 model.logout();
+                                Fluttertoast.showToast(
+                                    msg: "logged out succesfully",
+                                    toastLength: Toast.LENGTH_LONG,
+                                    gravity: ToastGravity.BOTTOM,
+                                    timeInSecForIosWeb: 1,
+                                    backgroundColor: Colors.grey.shade700,
+                                    textColor: Colors.white,
+                                    fontSize: 12.0);
                               },
                               child: Text("Yes")),
                         ]);
@@ -400,9 +410,8 @@ class _ProfilePageState extends State<ProfilePage> {
       return Card(
         elevation: 5,
         child: Container(
-          padding: EdgeInsets.all(20.0),
-          height: 210,
-          width: 230,
+          width: 250,
+          padding: EdgeInsets.all(10),
           child: Column(
             children: <Widget>[
               ListTile(
@@ -444,13 +453,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 Container(
                   height: 360,
                   decoration: BoxDecoration(
-                      borderRadius: BorderRadius.only(
-                          bottomLeft: Radius.circular(50.0),
-                          bottomRight: Radius.circular(50.0)),
-                      gradient: LinearGradient(
-                          colors: [color1, color2],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight)),
+                    borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(50.0),
+                        bottomRight: Radius.circular(50.0)),
+                    gradient: LinearGradient(
+                        colors: [color1, color2],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight),
+                  ),
                 ),
                 Container(
                   margin: const EdgeInsets.only(top: 70),

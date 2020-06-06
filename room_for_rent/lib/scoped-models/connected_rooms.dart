@@ -10,16 +10,20 @@ import 'package:mime/mime.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:meta/meta.dart';
+import 'package:location/location.dart' as geoloc;
 
 import '../models/room.dart';
 import '../models/user.dart';
 import '../models/auth.dart';
+import '../models/notification_data.dart';
 import '../models/location_data.dart';
 
 mixin ConnectedRoomsModel on Model {
   List<Room> _rooms = [];
   String _selRoomId;
   User _authenticatedUser;
+  NotificationData _notificationUser;
+  LocationData _currentLocation;
   bool _isLoading = false;
 }
 mixin RoomsModel on ConnectedRoomsModel {
@@ -439,6 +443,50 @@ mixin RoomsModel on ConnectedRoomsModel {
     }
   }
 
+  LocationData get currentLocation {
+    return _currentLocation;
+  }
+
+  Future getCurrentLocation(String mode) async {
+    final location = geoloc.Location();
+    final permissionStatus = await location.serviceEnabled();
+
+    if (mode == "init") {
+      location.requestService().then((bool response) async {
+        if (response == true) {
+          final currentUserLocation = await location.getLocation();
+          final LocationData current = LocationData(
+              latitude: currentUserLocation.latitude,
+              longitude: currentUserLocation.longitude);
+          _currentLocation = current;
+        }
+      });
+    }
+
+    if (mode == "search") {
+      if (permissionStatus != true) {
+        location.requestService().then((bool response) async {
+          if (response == true) {
+            final currentUserLocation = await location.getLocation();
+            final LocationData current = LocationData(
+                latitude: currentUserLocation.latitude,
+                longitude: currentUserLocation.longitude);
+            _currentLocation = current;
+            return true;
+          } else
+            return false;
+        });
+      } else {
+        final currentUserLocation = await location.getLocation();
+        final LocationData current = LocationData(
+            latitude: currentUserLocation.latitude,
+            longitude: currentUserLocation.longitude);
+        _currentLocation = current;
+        return true;
+      }
+    }
+  }
+
   void selectRoom(String roomId) {
     _selRoomId = roomId;
     if (roomId != null) {
@@ -469,7 +517,6 @@ mixin RoomsModel on ConnectedRoomsModel {
 }
 
 mixin UserModel on ConnectedRoomsModel {
-  // Timer _authTimer;
   PublishSubject<bool> _userSubject = PublishSubject();
 
   User get user {
@@ -480,7 +527,40 @@ mixin UserModel on ConnectedRoomsModel {
     return _userSubject;
   }
 
-  void getUserInfo() async {
+  Future<Null> getUserNotification() async {
+    _isLoading = true;
+    notifyListeners();
+    if (_authenticatedUser != null) {
+      http.Response response;
+
+      response = await http.get(
+          'https://room-for-rent-e5a97.firebaseio.com/notification/${_authenticatedUser.id}.json?auth=${_authenticatedUser.token}');
+      if (response != null) {
+        final Map<String, dynamic> userNotificationInfo =
+            json.decode(response.body);
+
+        if (userNotificationInfo != null) {
+          final NotificationData notificationData = NotificationData(
+              title: userNotificationInfo["title"],
+              body: userNotificationInfo["body"],
+              allow: userNotificationInfo["allow"],
+              availability: userNotificationInfo["availability"]);
+
+          _notificationUser = notificationData;
+
+          _isLoading = false;
+          notifyListeners();
+          return;
+        }
+      }
+    }
+
+    _isLoading = false;
+    notifyListeners();
+    return;
+  }
+
+  Future<Null> getUserInfo() async {
     _isLoading = true;
     notifyListeners();
     http.Response response;
@@ -489,6 +569,7 @@ mixin UserModel on ConnectedRoomsModel {
       response = await http.get(
           'https://room-for-rent-e5a97.firebaseio.com/users/${_authenticatedUser.id}.json?auth=${_authenticatedUser.token}');
     }
+
     if (json.decode(response.body) != null) {
       final Map<String, dynamic> userInfo = json.decode(response.body);
       final User aa = User(
@@ -503,43 +584,12 @@ mixin UserModel on ConnectedRoomsModel {
       _authenticatedUser = aa;
       _isLoading = false;
       notifyListeners();
+      return;
     }
     _isLoading = false;
     notifyListeners();
     return;
   }
-
-  // Future<Null> fetchUserInfo() {
-  //   print("fetching Info");
-  //   _isLoading = true;
-  //   notifyListeners();
-  //   return http
-  //       .get(
-  //           'https://polar-terminal-262214.firebaseio.com/users/${_authenticatedUser.uid}.json?auth=${_authenticatedUser.token}')
-  //       .then<Null>((http.Response response) {
-  //     final Map<String, dynamic> userInfo = json.decode(response.body);
-  //     if (userInfo != null) {
-  //       final User newInfo = User(
-  //           email: _authenticatedUser.email,
-  //           id: _authenticatedUser.id,
-  //           token: _authenticatedUser.token,
-  //           phone: userInfo['phone'],
-  //           dob: userInfo['dob'],
-  //           gender: userInfo['gender'],
-  //           name: userInfo['name']);
-  //       _authenticatedUser = newInfo;
-  //       print(newInfo);
-  //     }
-
-  //     _isLoading = false;
-  //     _selRoomId = null;
-  //     notifyListeners();
-  //   }).catchError((error) {
-  //     _isLoading = false;
-  //     notifyListeners();
-  //     return;
-  //   });
-  // }
 
   Future<bool> addUserInfo(
       String name, int phone, String dob, String gender, String mode) async {
@@ -699,6 +749,10 @@ mixin NotificationModel on ConnectedRoomsModel {
   int finallength = 0;
   Map<String, dynamic> roomListData;
 
+  NotificationData get notification {
+    return _notificationUser;
+  }
+
   int get initialListLength {
     return initiallength;
   }
@@ -724,38 +778,109 @@ mixin NotificationModel on ConnectedRoomsModel {
     }
   }
 
-  void initialCheck() {
-    Timer anyTimer;
-    anyTimer = Timer.periodic(Duration(seconds: 2), (timer) async {
-      final http.Response x = await http
-          .get('https://polar-terminal-262214.firebaseio.com/.json?}');
-      final Map<String, dynamic> xx = json.decode(x.body);
-      bool allow = xx["allow"];
-      String bearer = xx["az"];
-      String a = xx["1"];
-      String b = xx["2"];
-      String c = xx["3"];
-      String d = xx['4'];
-      if (allow == true) {
-        anyTimer.cancel();
-        Timer(Duration(seconds: 2), () {
-          showOngoingNotification(notifications,
-              title: bearer, body: a.toString(), id: 10);
-        });
-        Timer(Duration(seconds: 4), () {
-          showOngoingNotification(notifications,
-              title: bearer, body: b.toString(), id: 20);
-        });
-        Timer(Duration(seconds: 6), () {
-          showOngoingNotification(notifications,
-              title: bearer, body: c.toString(), id: 30);
-        });
-        Timer(Duration(seconds: 8), () {
-          showOngoingNotification(notifications,
-              title: bearer, body: d.toString(), id: 40);
-        });
+  void userNotifictionCheck() {
+    Timer newtimer;
+    newtimer = Timer.periodic(Duration(seconds: 2), (timer) async {
+      String title;
+      String body;
+      if (_authenticatedUser == null) {
+        newtimer.cancel();
+      }
+      if (_authenticatedUser != null) {
+        http.Response response = await http.get(
+            'https://room-for-rent-e5a97.firebaseio.com/notification/${_authenticatedUser.id}.json?auth=${_authenticatedUser.token}');
+        Map<String, dynamic> notificationData = json.decode(response.body);
+        if (notificationData != null) {
+          title = notificationData["title"];
+          body = notificationData["body"];
+        }
+
+        if (notificationData != null) {
+          if (notificationData["allow"] == true) {
+            final Map<String, dynamic> updated = {
+              'allow': false,
+              'title': title,
+              'body': body,
+              'availability': true
+            };
+
+            showOngoingNotification(notifications, title: title, body: body);
+            http.put(
+                'https://room-for-rent-e5a97.firebaseio.com/notification/${_authenticatedUser.id}.json?auth=${_authenticatedUser.token}',
+                body: json.encode(updated));
+          }
+        }
       }
     });
+  }
+
+  void storeNotificationMesssage(String title, String message) async {
+    final Map<String, dynamic> notificationData = {
+      "title": title,
+      "body": message,
+      "availability": true,
+      "allow": true,
+    };
+    final Map<String, dynamic> notificationRawData = {
+      "title": "",
+      "body": "",
+      "availability": false,
+      "allow": false,
+    };
+    if (_authenticatedUser != null) {
+      final http.Response responseData = await http.get(
+          'https://room-for-rent-e5a97.firebaseio.com/notification/${_authenticatedUser.id}.json?auth=${_authenticatedUser.token}');
+
+      final Map<String, dynamic> notificationResponseData =
+          json.decode(responseData.body);
+
+      if (notificationResponseData != null) {
+        if (notificationResponseData["body"] != message) {
+          http.put(
+              'https://room-for-rent-e5a97.firebaseio.com/notification/${_authenticatedUser.id}.json?auth=${_authenticatedUser.token}',
+              body: json.encode(notificationData));
+        }
+      } else
+        http.put(
+            'https://room-for-rent-e5a97.firebaseio.com/notification/${_authenticatedUser.id}.json?auth=${_authenticatedUser.token}',
+            body: json.encode(notificationRawData));
+    }
+  }
+
+  void initialNotificationCheck() {
+    Timer anyTimer;
+    anyTimer = Timer.periodic(Duration(seconds: 2), (timer) async {
+      if (_authenticatedUser == null) {
+        anyTimer.cancel();
+      }
+      if (_authenticatedUser != null) {
+        final http.Response response = await http.get(
+            'https://room-for-rent-e5a97.firebaseio.com/Notifications.json?auth=${_authenticatedUser.token}');
+        final Map<String, dynamic> notificationData =
+            json.decode(response.body);
+        if (notificationData != null) {
+          bool public = notificationData["public"];
+          String notificationTitle = notificationData["message_title"];
+          String notificationBody = notificationData["message_body"];
+
+          if (public == true) {
+            storeNotificationMesssage(notificationTitle, notificationBody);
+          }
+        }
+      }
+    });
+  }
+
+  void deleteNotification() {
+    final Map<String, dynamic> notificationData = {
+      "title": _notificationUser.title,
+      "body": _notificationUser.body,
+      "availability": false,
+      "allow": _notificationUser.allow,
+    };
+    http.put(
+        'https://room-for-rent-e5a97.firebaseio.com/notification/${_authenticatedUser.id}.json?auth=${_authenticatedUser.token}',
+        body: json.encode(notificationData));
   }
 
   void checkForUpdatedList() {

@@ -13,54 +13,56 @@ class RoomsAdminPage extends StatelessWidget {
 
   Widget _buildSideDrawer(BuildContext context, MainModel model) {
     return Drawer(
-      child: Column(
-        children: <Widget>[
-          AppBar(
-            automaticallyImplyLeading: false,
-            title: Text('Choose'),
-          ),
-          ListTile(
-            leading: Icon(Icons.home),
-            title: Text('Home'),
-            onTap: () {
-              Navigator.pushReplacementNamed(context, '/homepage');
-            },
-          ),
-          Divider(),
-          ListTile(
-            leading: Icon(Icons.shop),
-            title: Text('All Rooms'),
-            onTap: () {
-              Navigator.pushReplacementNamed(context, '/list');
-            },
-          ),
-          Divider(),
-          ListTile(
-            leading: Icon(Icons.favorite),
-            title: Text("Favorite"),
-            onTap: () {
-              Navigator.pop(context);
-              model.toggleDisplayMode(mode: "true");
-              Navigator.pushNamed(context, '/favorite')
-                  .then((value) => model.toggleDisplayMode(mode: "false"));
-            },
-          ),
-          Divider(),
-          ListTile(
-            leading: Icon(Icons.info_outline),
-            title: Text('About Us'),
-            onTap: () {
-              Navigator.pop(context);
-              showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AboutUsDialogue();
-                  });
-            },
-          ),
-          Divider(),
-          LogoutListTile()
-        ],
+      child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          title: Text('Choose'),
+        ),
+        body: ListView(
+          children: <Widget>[
+            ListTile(
+              leading: Icon(Icons.home),
+              title: Text('Home'),
+              onTap: () {
+                Navigator.pushReplacementNamed(context, '/homepage');
+              },
+            ),
+            Divider(),
+            ListTile(
+              leading: Icon(Icons.shop),
+              title: Text('All Rooms'),
+              onTap: () {
+                Navigator.pushReplacementNamed(context, '/list');
+              },
+            ),
+            Divider(),
+            ListTile(
+              leading: Icon(Icons.favorite),
+              title: Text("Favorite"),
+              onTap: () {
+                Navigator.pop(context);
+                model.toggleDisplayMode(mode: "true");
+                Navigator.pushNamed(context, '/favorite')
+                    .then((value) => model.toggleDisplayMode(mode: "false"));
+              },
+            ),
+            Divider(),
+            ListTile(
+              leading: Icon(Icons.info_outline),
+              title: Text('About Us'),
+              onTap: () {
+                Navigator.pop(context);
+                showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AboutUsDialogue();
+                    });
+              },
+            ),
+            Divider(),
+            LogoutListTile()
+          ],
+        ),
       ),
     );
   }

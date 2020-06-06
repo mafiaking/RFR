@@ -73,24 +73,52 @@ class RoomCard extends StatelessWidget {
       message: 'offer',
       location: BannerLocation.topStart,
       textStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-      child: FadeInImage(
+      child: Stack(children: [
+        FadeInImage(
+          image: NetworkImage(room.image),
+          height: 150.0,
+          width: MediaQuery.of(context).size.width,
+          fit: BoxFit.cover,
+          placeholder: AssetImage('assets/homepage_card.png'),
+        ),
+        Align(
+          alignment: Alignment.topRight,
+          child: room.isFavorite
+              ? Icon(
+                  Icons.favorite,
+                  color: Colors.red,
+                )
+              : Icon(
+                  Icons.favorite_border,
+                  color: Colors.black,
+                ),
+        ),
+      ]),
+    );
+  }
+
+  Widget _buildWithoutOffer(BuildContext context) {
+    return Stack(children: [
+      FadeInImage(
         image: NetworkImage(room.image),
         height: 150.0,
         width: MediaQuery.of(context).size.width,
         fit: BoxFit.cover,
         placeholder: AssetImage('assets/homepage_card.png'),
       ),
-    );
-  }
-
-  Widget _buildWithoutOffer(BuildContext context) {
-    return FadeInImage(
-      image: NetworkImage(room.image),
-      height: 150.0,
-      width: MediaQuery.of(context).size.width,
-      fit: BoxFit.cover,
-      placeholder: AssetImage('assets/homepage_card.png'),
-    );
+      Align(
+        alignment: Alignment.topRight,
+        child: room.isFavorite
+            ? Icon(
+                Icons.favorite,
+                color: Colors.red,
+              )
+            : Icon(
+                Icons.favorite_border,
+                color: Colors.black,
+              ),
+      ),
+    ]);
   }
 
   @override

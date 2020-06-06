@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:room_for_rent/widgets/rooms/room_search.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:room_for_rent/scoped-models/main.dart';
 
@@ -12,20 +13,21 @@ class _RoomSearchIconState extends State<RoomSearchIcon> {
   Widget build(BuildContext context) {
     return ScopedModelDescendant<MainModel>(
         builder: (BuildContext context, Widget child, MainModel model) {
-      return Align(
-          alignment: Alignment.topRight,
-          child: IconButton(
-              icon: Icon(Icons.search),
-              onPressed: () {
-                print("Searching");
-                showSearch(context: context, delegate: RoomSearch(model));
-              }));
+      return GestureDetector(
+          child: Icon(
+            Icons.search,
+            color: Colors.white,
+          ),
+          onTap: () {
+            showSearch(context: context, delegate: RoomSearch(model));
+          });
     });
   }
 }
 
 class RoomSearch extends SearchDelegate<String> {
   MainModel model;
+  String sorting = "low to high";
 
   RoomSearch(this.model);
   final List serachQueries = [
@@ -41,10 +43,28 @@ class RoomSearch extends SearchDelegate<String> {
     "double rooms",
     "room",
     "rooms",
-    "disount",
+    "discount",
     "discount room",
     "discount rooms",
-    "all rooms"
+    "all rooms",
+    "3bhk",
+    "2bhk",
+    "offer rooms",
+    "province No. 1",
+    "province No. 2",
+    "bagmati Pradesh",
+    "gandaki Pradesh",
+    "province No. 5",
+    "karnali Pradesh",
+    "sudurpashchim Pradesh",
+    "biratnagar",
+    "janakpur",
+    "hetauda",
+    "pokhara",
+    "butwal",
+    "birendranagar",
+    "godawari",
+    "kathmandu"
   ];
 
   final roomCategories = [
@@ -61,7 +81,7 @@ class RoomSearch extends SearchDelegate<String> {
           icon: Icon(Icons.clear),
           onPressed: () {
             query = "";
-          })
+          }),
     ];
   }
 
@@ -79,13 +99,53 @@ class RoomSearch extends SearchDelegate<String> {
 
   @override
   Widget buildResults(BuildContext context) {
-    return Center(
-        child: Container(
-      height: 100,
-      width: 100,
-      child: Text(query),
-      color: Colors.red,
-    ));
+    return Scaffold(
+      body: Column(children: [
+        Container(
+          height: 50,
+          child:
+              Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+            Card(
+              elevation: 3,
+              child: InkWell(
+                  child: Container(
+                    width: MediaQuery.of(context).size.width * 0.4,
+                    padding: EdgeInsets.all(5),
+                    child: Icon(Icons.sort),
+                  ),
+                  onTap: () {
+                    if (sorting == "low to high") {
+                      query = "price high to low";
+                      sorting = "high to low";
+                    } else {
+                      sorting = "low to high";
+                      query = "price low to high";
+                    }
+                  }),
+            ),
+            Card(
+              elevation: 3,
+              child: InkWell(
+                child: Container(
+                  width: MediaQuery.of(context).size.width * 0.4,
+                  padding: EdgeInsets.all(5),
+                  child: Icon(Icons.gps_fixed),
+                ),
+                onTap: () {
+                  model.getCurrentLocation("search").then((response) {
+                    if (response == true) {
+                      query = "nearby location";
+                      showResults(context);
+                    }
+                  });
+                },
+              ),
+            ),
+          ]),
+        ),
+        Expanded(child: RoomSearchResult(query, model))
+      ]),
+    );
   }
 
   @override
@@ -98,12 +158,15 @@ class RoomSearch extends SearchDelegate<String> {
     return ListView.builder(
       itemBuilder: (context, index) => ListTile(
         onTap: () {
+          query = suggestionsList[index].toString();
           showResults(context);
         },
         leading: Icon(Icons.location_city),
         title: RichText(
           text: TextSpan(
-              text: suggestionsList[index].substring(0, query.length),
+              text: suggestionsList[index]
+                  .substring(0, query.length)
+                  .toUpperCase(),
               style:
                   TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
               children: [

@@ -1,13 +1,13 @@
 import 'package:animations/animations.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:room_for_rent/pages/favorite.dart';
 import 'package:room_for_rent/pages/notification_page.dart';
 import 'package:room_for_rent/pages/profile.dart';
 import 'package:room_for_rent/pages/rooms_admin.dart';
 import 'package:room_for_rent/utils/search_deligate.dart';
 import 'package:room_for_rent/widgets/homepage/room_card.dart';
 import 'package:room_for_rent/widgets/homepage/second_pwage.dart';
-import 'package:room_for_rent/widgets/rooms/rooms.dart';
 import 'package:room_for_rent/widgets/ui_elements/adapative_progress_indicator.dart';
 import 'package:scoped_model/scoped_model.dart';
 import '../scoped-models/main.dart';
@@ -28,24 +28,30 @@ Widget _sliverAppBar(BuildContext context) {
     automaticallyImplyLeading: false,
     expandedHeight: 100,
     pinned: true,
-    centerTitle: true,
-    title: Container(
-      child: RoomSearchIcon(),
-    ),
+    // centerTitle: true,
+    // title: Container(
+    //   child: RoomSearchIcon(),
+    // ),
     flexibleSpace: FlexibleSpaceBar(
       centerTitle: true,
-      title: Text(
-        "ROOM FOR RENT",
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          Text(
+            "ROOM FOR RENT",
+          ),
+          RoomSearchIcon()
+        ],
       ),
       background: Container(
-        padding: EdgeInsets.all(20),
-        color: Colors.blue,
-        child: Align(
-            alignment: Alignment.center,
-            child: Text(
-              "making room renting easy",
-              style: TextStyle(color: Colors.white),
-            )),
+        // padding: EdgeInsets.all(20),
+        color: Colors.red,
+        // child: Align(
+        //     alignment: Alignment.center,
+        //     child: Text(
+        //       "making room renting easy",
+        //       style: TextStyle(color: Colors.white),
+        //     )),
       ),
     ),
   );
@@ -141,40 +147,13 @@ Widget _buildSliverPage() {
   });
 }
 
-Widget _buildFavList() {
-  return ScopedModelDescendant<MainModel>(
-      builder: (BuildContext context, Widget child, MainModel model) {
-    return model.displayedRooms.length > 0
-        ? Column(children: <Widget>[
-            AppBar(
-              
-              title: Text("Favorite Rooms"),
-            ),
-            Expanded(child: Rooms())
-          ])
-        : Column(
-            children: <Widget>[
-              AppBar(
-                automaticallyImplyLeading: false,
-                title: Text("Favorite Rooms"),
-              ),
-              SizedBox(height: MediaQuery.of(context).size.height / 2),
-              Text("No Favorite Rooms")
-            ],
-          );
-  });
-}
-
-Widget _buildNotification() {
-  return SecondPage(payload: "message");
-}
-
 class _HomePageState extends State<HomePage> {
   @override
   initState() {
     widget.model.fetchRooms().then((value) {
       if (widget.model.user.info == false) {
         widget.model.getUserInfo();
+        widget.model.getUserNotification();
       }
     });
 
@@ -184,8 +163,8 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   static List<Widget> _widgetOptions = <Widget>[
     _buildSliverPage(),
-    _buildFavList(),
-    _buildNotification(),
+    Favorite(),
+    NotificationList(),
     ProfilePage()
   ];
 
@@ -202,38 +181,17 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    ContainerTransitionType _transitionType = ContainerTransitionType.fade;
     return Scaffold(
       body: _widgetOptions.elementAt(_selectedIndex),
-      floatingActionButton: OpenContainer(
-        transitionDuration: Duration(milliseconds: 350),
-        transitionType: _transitionType,
-        openBuilder: (BuildContext context, VoidCallback _) {
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
           widget.model.toggleDisplayMode(mode: "false");
-          widget.model.selectRoom(null);
-          return RoomsAdminPage(widget.model);
+          Navigator.pushNamed(context, '/admin')
+              .then((value) => widget.model.selectRoom(null));
         },
-        closedElevation: 6.0,
-        closedShape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(
-            Radius.circular(56 / 2),
-          ),
-        ),
-        closedColor: Colors.white,
-        closedBuilder: (BuildContext context, VoidCallback openContainer) {
-          return SizedBox(
-            height: 50,
-            width: 50,
-            child: Center(
-              child: Icon(
-                Icons.add,
-                color: Theme.of(context).primaryColor,
-              ),
-            ),
-          );
-        },
+        child: Icon(Icons.add),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: CurvedNavigationBar(
         backgroundColor: Theme.of(context).primaryColor,
         height: 50,

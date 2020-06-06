@@ -15,15 +15,19 @@ class _FavoriteState extends State<Favorite> {
         builder: (BuildContext context, Widget child, MainModel model) {
       return Scaffold(
         appBar: AppBar(
+          automaticallyImplyLeading: false,
           title: Text("Favorite Rooms"),
         ),
         body: model.displayedRooms.length > 0
-            ? Column(children: <Widget>[Expanded(child: Rooms())])
-            : Column(
+            ? Column(
                 children: <Widget>[
-                  SizedBox(height: MediaQuery.of(context).size.height / 2),
-                  Text("No Favorite Rooms")
+                  Expanded(
+                    child: Rooms(),
+                  ),
                 ],
+              )
+            : Center(
+                child: Text("No Favorited Room Found"),
               ),
       );
     });

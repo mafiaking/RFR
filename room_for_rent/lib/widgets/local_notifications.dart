@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+
 import 'package:room_for_rent/pages/notification_page.dart';
 import 'package:room_for_rent/scoped-models/main.dart';
 import 'package:scoped_model/scoped_model.dart';
@@ -27,7 +27,7 @@ class _LocalNotificationsState extends State<LocalNotifications> {
 
   Future onSelectNotification(String payload) async => await Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => SecondPage(payload: payload)),
+        MaterialPageRoute(builder: (context) => NotificationList()),
       );
 
   @override
@@ -68,15 +68,34 @@ class _LocalNotificationsState extends State<LocalNotifications> {
             ),
             RaisedButton(
               child: Text('Test'),
-              onPressed: () {
-                Fluttertoast.showToast(
-                    msg: "succesfully added",
-                    toastLength: Toast.LENGTH_LONG,
-                    gravity: ToastGravity.BOTTOM,
-                    timeInSecForIosWeb: 1,
-                    backgroundColor: Colors.grey.shade700,
-                    textColor: Colors.white,
-                    fontSize: 12.0);
+              onPressed: () async {
+                // model.getCurrentLocation("init");
+                print(model.currentLocation);
+                // double clat1 = 26.9742872;
+                // double clong1 = 79.8071751;
+                // double clat2 = 21.4269339;
+                // double clong2 = 86.9944317;
+
+                // final Distance distance = new Distance( );
+
+                // final double km = distance.as(
+                //     LengthUnit.Kilometer,
+                //     new LatLng(26.9742872, 79.8071751),
+                //     new LatLng(21.4269339, 86.9944317));
+                // print(km.floor());
+                //Haversine manual approach
+                // double diff = clong2 - clong1;
+                // var lat1 = clat1 * pi / 180;
+                // var lat2 = clat2 * pi / 180;
+                // var rdiff = diff * pi / 180;
+
+                // var x = sin(lat1) * sin(lat2);
+                // var y = cos(lat1) * cos(lat2) * cos(rdiff);
+
+                // var d = 3963.0 * acos(x + y);
+                // d = d * 1.609344;
+
+                // print(d);
               },
             ),
           ],
